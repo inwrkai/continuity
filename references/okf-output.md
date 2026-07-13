@@ -1,6 +1,6 @@
 # OKF Output Format
 
-Rules for writing okf-brain pipeline output as a portable knowledge bundle on disk.
+Rules for writing ops-brain pipeline output as a portable knowledge bundle on disk.
 
 The layout is self-contained markdown with YAML frontmatter. It is designed to be compatible with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) where useful; agents should follow the rules in this file even without consulting the external spec.
 
@@ -134,7 +134,7 @@ due_date: "2026-07-16"
 - `tags` — cross-cutting labels
 - `timestamp` — ISO 8601 last-modified time
 
-**Producer-defined fields (okf-brain):**
+**Producer-defined fields (ops-brain):**
 
 - `record_id` — stable UUID; reused on updates
 - `confidence` — `high`, `medium`, or `low` (see legacy mapping in [objects.md](objects.md))
@@ -269,7 +269,7 @@ Keep the **most recent 20** run files under `runs/`. After writing a new run fil
 
 ## Conformance checklist
 
-A bundle produced by okf-brain is well-formed when:
+A bundle produced by ops-brain is well-formed when:
 
 1. Every non-reserved `.md` file has parseable YAML frontmatter with a non-empty `type`
 2. Root `index.md` declares `okf_version: "0.1"`

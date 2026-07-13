@@ -1,22 +1,28 @@
 ---
-name: okf-brain
+name: ops-brain
 description: >-
-  Converts transcripts and documents into OKF knowledge records via an
-  extract-review-write pipeline, and answers questions from existing OKF
-  bundles. Use when the user mentions okf-brain, OKF, convert to records,
-  extract tasks/decisions/blockers from a transcript, update an OKF bundle,
-  or asks about records already stored in okf/.
+  Turn work context into portable operational records for AI agents. Extracts,
+  maintains, and queries tasks, decisions, blockers, and other operational
+  truth from conversations, documents, and connected sources via an
+  extract-review-write pipeline. Use when the user mentions ops-brain, inwrk
+  Ops Brain, operational context, convert to records, extract
+  tasks/decisions/blockers from a transcript, update an OKF bundle, or asks
+  about records already stored in okf/.
 license: MIT
 compatibility: Works with any Agent Skills-compatible agent (Cursor, Claude Code, etc.). Writes output to the workspace; no external services required.
 metadata:
-  author: okf-brain
+  author: inwrk
   version: "0.2.0"
-  homepage: https://github.com/anubhavmisra/okf-brain
+  homepage: https://github.com/inwrkai/ops-brain
 ---
 
-# okf-brain — Context to OKF Records
+# inwrk Ops Brain
 
-Converts provided context (attachments, MCP data, pasted transcripts) into organized knowledge records written as an OKF bundle on disk. Also answers questions from an existing bundle without re-extracting.
+**Turn work context into portable operational records for AI agents.**
+
+The open operational-context layer for inwrk: extract, maintain, and query tasks, decisions, blockers, and other operational truth from conversations, documents, and connected sources.
+
+Converts provided context (attachments, MCP data, pasted transcripts) into organized operational records written as an OKF bundle on disk. Also answers questions from an existing bundle without re-extracting.
 
 This skill is self-contained. All stage instructions, object schemas, output format rules, and query guidance live in this skill's `references/` directory.
 
@@ -24,7 +30,7 @@ This skill is self-contained. All stage instructions, object schemas, output for
 
 **Extract / update** when the user:
 
-- Mentions **okf-brain**, **OKF**, or **convert to records**
+- Mentions **ops-brain**, **inwrk Ops Brain**, **operational context**, or **convert to records**
 - Provides a transcript or documents and wants actionable records extracted
 - Wants to update an existing OKF bundle with new context
 
@@ -161,7 +167,7 @@ Default types: `Task`, `Thread`, `Attendance`, `Appointment`, `Lead`, `Expense`,
 The user may request a subset:
 
 ```
-okf-brain this transcript — only Task, Decision, and Blocker
+ops-brain this transcript — only Task, Decision, and Blocker
 ```
 
 Custom types go in the bundle root `index.md` frontmatter. See [objects.md](references/objects.md).
@@ -194,7 +200,7 @@ When `okf/` already exists:
 
 ## Example session
 
-**User:** "okf-brain — here's our standup transcript: [paste]"
+**User:** "ops-brain — here's our standup transcript: [paste]"
 
 **Agent:**
 
@@ -206,7 +212,7 @@ When `okf/` already exists:
 6. Reports:
 
 ```
-okf-brain run complete
+ops-brain run complete
 - 6 drafts → 4 records (3 created, 1 updated)
 - Output: okf/
 - Review: "Fix login bug" (confidence low) — please verify

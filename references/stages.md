@@ -1,6 +1,6 @@
 # Pipeline Stage Instructions
 
-This file contains the three processing stages used by the okf-brain skill. The agent performs each stage directly — there is no external API call. Apply the instructions below at each step.
+This file contains the three processing stages used by the ops-brain skill. The agent performs each stage directly — there is no external API call. Apply the instructions below at each step.
 
 Object types and field schemas come from [objects.md](objects.md). Output format rules come from [okf-output.md](okf-output.md). Querying an existing bundle is covered in [query.md](query.md).
 

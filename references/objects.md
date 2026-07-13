@@ -1,6 +1,6 @@
 # Object Catalog
 
-Default object types and field schemas for the okf-brain extraction pipeline. Use these when the user does not specify a custom scope.
+Default object types and field schemas for the ops-brain extraction pipeline. Use these when the user does not specify a custom scope.
 
 ## Default object types
 

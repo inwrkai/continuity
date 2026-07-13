@@ -1,12 +1,12 @@
-# okf-brain Agent Skill — Navigation Guide
+# ops-brain Agent Skill — Navigation Guide
 
-Guide for AI agents converting conversation context into OKF knowledge records, and answering questions from existing bundles.
+Guide for AI agents converting work context into portable operational records, and answering questions from existing bundles.
 Read [SKILL.md](SKILL.md) first for the 6-step orchestration workflow and query mode.
 
 ## Structure
 
 ```
-okf-brain/
+ops-brain/
   SKILL.md          # Main skill manifest — read this first
   AGENTS.md         # This navigation guide
   references/       # Detailed reference files — load on demand
@@ -15,7 +15,7 @@ okf-brain/
 ## Quick Start
 
 ```
-New to okf-brain? Read in this order:
+New to ops-brain? Read in this order:
   1. SKILL.md                         ← 6-step workflow, query mode, triggers
   2. references/stages.md             ← extract → review → write/lessons
   3. references/objects.md            ← default object types and field schemas
