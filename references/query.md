@@ -19,10 +19,11 @@ Prefer the extract → review → write pipeline when the user provides new cont
 Do **not** load every record file into context by default.
 
 1. Read root `inwrk/index.md` for bundle title, description, and `object_types`
-2. Read `inwrk/records/index.md` for the listing of titles, descriptions, and types
-3. Filter the index to candidates that match the question
-4. Load only those matching `records/<slug>.md` files
-5. Optionally read `inwrk/log.md` for change history and `inwrk/lessons.md` only if relevant
+2. When `inwrk/schema.md` exists with `status: confirmed`, use it for object/field names (authoritative over stale `index.md` frontmatter)
+3. Read `inwrk/records/index.md` for the listing of titles, descriptions, and types
+4. Filter the index to candidates that match the question
+5. Load only those matching `records/<slug>.md` files
+6. Optionally read `inwrk/log.md` for change history and `inwrk/lessons.md` only if relevant
 
 If `records/index.md` is missing, scan `records/*.md` filenames and frontmatter as a fallback.
 

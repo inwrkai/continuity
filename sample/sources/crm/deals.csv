@@ -1,0 +1,9 @@
+deal_id,name,company_name,amount,status,close_date
+D101,Acme Platform Renewal,Acme Corp,48000,Qualified,2026-08-15
+D102,Globex Pilot Expansion,Globex Industries,125000,New,2026-09-30
+D103,Initech Compliance Module,Initech,62000,Won,2026-06-01
+D104,Northwind Internal Rollout,Northwind Analytics,0,Won,2026-05-10
+D105,Umbrella Data Migration,Umbrella Holdings,89000,Qualified,2026-07-25
+D106,Stark Fleet Integration,Stark Logistics,34000,Lost,2026-04-20
+D107,Acme Analytics Add-on,Acme Corp,18500,New,2026-10-01
+D108,Globex Support Upgrade,Globex Industries,22000,Qualified,2026-08-05

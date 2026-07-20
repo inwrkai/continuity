@@ -1,0 +1,36 @@
+From: Priya Sharma <priya@acme.com>
+To: Alex Rivera <alex@northwind.io>
+Cc: Jordan Lee <jordan@northwind.io>
+Date: Fri, 10 Jul 2026 18:22:00 -0500
+Subject: Re: Platform Renewal + Analytics Add-on — demo Thursday
+
+Hi Alex,
+
+Thanks for the quick turnaround. Thursday at 2pm works for our team — please use the same Zoom link as last quarter.
+
+For the demo we'd like to see:
+1. Platform renewal workflow (deal D101 scope)
+2. Analytics add-on dashboards with our sample dataset
+3. Combined pricing options for renewal + add-on in one proposal
+
+Legal asked whether the pilot can go live without the feature flag — your product note today helps. We still need written confirmation on support escalation paths.
+
+Also looping in our ops lead on the open warranty claim (#8821) separately — please don't bundle that into renewal pricing.
+
+Best,
+Priya
+
+---
+From: Alex Rivera <alex@northwind.io>
+To: Priya Sharma <priya@acme.com>
+Date: Fri, 10 Jul 2026 14:05:00 -0500
+Subject: Platform Renewal + Analytics Add-on — demo Thursday
+
+Hi Priya,
+
+Following up on our call — can we schedule a client demo for Thursday afternoon to walk through the platform renewal and analytics add-on?
+
+Jordan will run the technical demo; I'll bring pricing options for both line items.
+
+Thanks,
+Alex

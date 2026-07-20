@@ -1,0 +1,35 @@
+#sales-team — Northwind Analytics
+Exported: 2026-07-11
+
+[2026-07-11 09:42] @alex
+Morning — quick sync on Acme before Priya's call tomorrow. Platform Renewal (D101) is still Qualified but they want the analytics add-on scoped in the same conversation.
+
+[2026-07-11 09:45] @jordan
+I can join the demo. Let's prepare the demo for Thursday — need updated slides and a sandbox with their sample data loaded.
+
+[2026-07-11 09:48] @marcus
+Decision from product: we're going to ship without the feature flag for the Acme pilot. Support can enable manually if something breaks.
+
+[2026-07-11 09:52] @alex
+Blocked on API keys — I can't finish the Acme sandbox until infra provisions staging credentials. Who owns that?
+
+[2026-07-11 09:55] @jordan
+Infra ticket is with DevOps. I'll ping them after standup.
+
+[2026-07-11 10:01] @alex
+Separate thing: Acme also opened warranty claim #8821 on last year's hardware bundle. Not sure if that affects renewal pricing — flagging for CS.
+
+[2026-07-11 10:04] @marcus
+Keep renewal and warranty separate for now. Focus on D101 and the analytics add-on (D107).
+
+[2026-07-11 10:08] @alex
+Globex Pilot Expansion (D102) is still New — James asked for a security questionnaire by end of week. I'll draft responses today.
+
+[2026-07-11 10:12] @jordan
+Umbrella migration call moved — see calendar. We still owe them a revised timeline for D105.
+
+[2026-07-11 10:15] @alex
+Got the follow-up email from Priya overnight — she confirmed Thursday 2pm for the client demo and wants pricing options for both renewal and add-on in one deck.
+
+[2026-07-11 10:18] @marcus
+Good. Action items: Jordan owns demo prep, Alex owns pricing deck and Globex security doc. Unblock API keys today if possible.

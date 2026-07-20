@@ -11,6 +11,9 @@ Default output directory: `inwrk/` in the current workspace (user may override).
 ```
 inwrk/
 ├── index.md                # Root index with okf_version and object config
+├── schema.md               # Current workspace schema (authoritative when present)
+├── schema/
+│   └── vN.md               # Immutable snapshots per confirmed schema version
 ├── log.md                  # Chronological update history
 ├── lessons.md              # Persistent lesson set (YAML in body)
 ├── records/
@@ -20,9 +23,157 @@ inwrk/
     └── <date>-<slug>.md    # Per-run summary (keep last 20)
 ```
 
+`schema.md` and `schema/` are created by [schema setup](schema-setup.md). Bundles that only use default object types may omit them.
+
+## Workspace schema
+
+When present and `status: confirmed`, `schema.md` is the **authoritative** definition of objects, fields, relationships, and rules for extract/review. Keep `index.md` `object_types` / `object_schemas` in sync as a compatibility mirror.
+
+### schema.md
+
+```yaml
+---
+schema_version: 1
+status: confirmed          # draft | confirmed
+updated: 2026-07-20
+sources:
+  - type: csv
+    name: customers.csv
+  - type: google_sheet
+    name: Pipeline Q3
+---
+```
+
+Body sections (markdown):
+
+#### Objects
+
+For each object type:
+
+```markdown
+## Objects
+
+### Company
+- **Description**: Customer or partner organization
+- **Identity keys**: `name` (normalized)
+- **Status**: (none)
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | Text | yes | Display name |
+| `domain` | Text | no | Website domain |
+
+### Deal
+- **Description**: Sales opportunity
+- **Identity keys**: `id` when present; else `name` + `company`
+- **Status**: `New`, `Qualified`, `Won`, `Lost`
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | Text | yes | Deal name |
+| `company` | Text | yes | Related Company name or id |
+| `amount` | Currency | no | |
+| `status` | Enum | yes | See status list above |
+```
+
+Prefer property types from [schema-vocabulary.md](schema-vocabulary.md) (`Text`, `Enum`, `Currency`, `Date`, …).
+
+#### Relationships
+
+```markdown
+## Relationships
+
+| From | Field | To | Cardinality | Optional |
+|------|-------|----|-------------|----------|
+| Deal | `company` | Company | many-to-one | no |
+| Task | `project` | Project | many-to-one | yes |
+```
+
+#### Rules
+
+```markdown
+## Rules
+
+### Validation
+- Deal.`status` must be one of the Deal status enum
+- Deal.`company` is required
+
+### Deduplication
+- Company: match on normalized `name` (and `domain` when both present)
+- Deal: match on external `id` when present; else `name` + related Company
+
+### Policy
+- (optional) Soft constraints as guidance text — Continuity does not execute them as an engine
+```
+
+Label rule kinds using vocabulary names when helpful (`Policy`, `Condition`, `Audit`, …). See [schema-vocabulary.md](schema-vocabulary.md).
+
+#### Open questions
+
+Only while `status: draft` or during discovery. Clear or omit after confirm.
+
+#### Changelog
+
+```markdown
+## Changelog
+
+### v1 — 2026-07-20
+- Initial schema from customers.csv and Pipeline Q3 sheet
+```
+
+### schema/vN.md snapshots
+
+On each confirmed version (initial confirm or approved bump):
+
+1. Write or overwrite `schema.md` with the new content and `schema_version: N`
+2. Copy the full confirmed content to `schema/vN.md` (immutable snapshot — do not edit later versions in place)
+3. Sync `index.md` (below)
+4. Append a log entry noting the schema confirm or bump
+
+### Syncing index.md from schema
+
+Whenever `schema.md` is confirmed or bumped:
+
+1. Set `object_types` to the list of object names from the schema
+2. Set `object_schemas` to a compact field map per object (field name → type comment / enum notes), sufficient for extract guidance
+3. Optionally add `schema_version` and a body link to `/schema.md`
+
+Do not leave `index.md` object config stale relative to a confirmed schema.
+
 ## Root index.md
 
 The bundle root `index.md` is the only `index.md` that may have frontmatter.
+
+**With workspace schema** (preferred when setup has run):
+
+```yaml
+---
+okf_version: "0.1"
+title: <Bundle title>
+description: <One-line summary of this knowledge bundle>
+schema_version: 1
+object_types:
+  - Company
+  - Deal
+  - Task
+object_schemas:
+  Company:
+    name: string
+    domain: string
+  Deal:
+    name: string
+    company: string
+    amount: number
+    status: string  # New, Qualified, Won, Lost
+  Task:
+    name: string
+    status: string
+    due_date: string
+    project: string
+---
+```
+
+**Fallback without schema** (defaults from [objects.md](objects.md)):
 
 ```yaml
 ---
@@ -42,9 +193,9 @@ object_types:
 ---
 ```
 
-Body: directory listing with links to `records/`, `lessons.md`, `log.md`, and recent `runs/`.
+Body: directory listing with links to `schema.md` (when present), `records/`, `lessons.md`, `log.md`, and recent `runs/`.
 
-Omit `object_schemas` unless custom types are defined (see [objects.md](objects.md)).
+Omit `object_schemas` only when using default types with no custom or discovered fields. When a confirmed schema exists, always include the synced `object_schemas` mirror.
 
 ## log.md
 
@@ -59,11 +210,12 @@ Chronological history, newest first. Date headings use ISO 8601 `YYYY-MM-DD`.
 
 ## 2026-07-10
 * **Initialization**: Created inwrk bundle structure.
+* **Schema**: Confirmed workspace schema v1 ([schema.md](/schema.md)).
 ```
 
-Entry types: `**Creation**`, `**Update**`, `**Deprecation**`.
+Entry types: `**Creation**`, `**Update**`, `**Deprecation**`, `**Schema**`.
 
-Append entries for every run. When a record is updated in place, log an **Update** entry referencing the record concept.
+Append entries for every run. When a record is updated in place, log an **Update** entry referencing the record concept. Log **Schema** when a schema is confirmed or bumped (include version number).
 
 ## lessons.md
 
@@ -261,7 +413,21 @@ Anchor date: 2026-07-11
 - [Client call with Priya](/records/client-call-priya.md) (updated, Appointment, high)
 - [Ship without feature flag](/records/ship-without-feature-flag.md) (created, Decision, medium)
 - [Blocked on API keys](/records/blocked-on-api-keys.md) (created, Blocker, high)
+
+# Schema misfits
+
+Facts that did not fit the current workspace schema (omit section if none):
+
+- Mention of "warranty claim #8821" — no Claim object in schema — cited: "opened warranty claim 8821"
+
+# Schema proposals
+
+Suggested schema changes from recurring or strong misfits (omit if none). Do not apply without user approval:
+
+- Add object `Claim` with fields `id`, `status`, `related_account` (seen in this run; confirm if it recurs)
 ```
+
+Include `# Schema misfits` whenever extract finds information that cannot map cleanly onto the confirmed schema. Include `# Schema proposals` when proposing a bump; apply only after the user approves (see [schema-setup.md](schema-setup.md)).
 
 ### Retention
 
@@ -271,11 +437,12 @@ Keep the **most recent 20** run files under `runs/`. After writing a new run fil
 
 A bundle produced by Continuity is well-formed when:
 
-1. Every non-reserved `.md` file has parseable YAML frontmatter with a non-empty `type`
+1. Every non-reserved `.md` file has parseable YAML frontmatter with a non-empty `type` (except directory indexes and `schema.md` / `schema/vN.md`, which use schema frontmatter)
 2. Root `index.md` declares `okf_version: "0.1"`
 3. `index.md` and `log.md` follow reserved-file conventions (root index may have frontmatter; directory indexes do not)
-4. Cross-links use bundle-relative paths (`/records/slug.md`)
+4. Cross-links use bundle-relative paths (`/records/slug.md`, `/schema.md`)
 5. New writes use categorical `confidence` (`high` | `medium` | `low`)
+6. When `schema.md` exists with `status: confirmed`, `index.md` `object_types` / `object_schemas` match that schema, and `schema/vN.md` exists for the current `schema_version`
 
 ## Chat summary
 
@@ -286,3 +453,4 @@ After writing the bundle, report to the user:
 - Path to the inwrk bundle
 - Any low-confidence records flagged for review
 - Lessons changes, if any
+- Schema misfits and any schema proposals awaiting approval

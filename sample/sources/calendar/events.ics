@@ -1,0 +1,40 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Northwind Analytics//Continuity Sample//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:evt-acme-demo-20260716@northwind.io
+DTSTAMP:20260711T101500Z
+DTSTART:20260716T140000Z
+DTEND:20260716T150000Z
+SUMMARY:Acme Corp — Client Demo (Platform Renewal + Analytics Add-on)
+DESCRIPTION:Demo for Priya Sharma (Acme Corp). Cover deal D101 renewal and D107 analytics add-on. Jordan presenting; Alex on pricing.
+LOCATION:Zoom — https://northwind.zoom.us/j/demo-acme
+ORGANIZER;CN=Alex Rivera:mailto:alex@northwind.io
+ATTENDEE;CN=Priya Sharma:mailto:priya@acme.com
+ATTENDEE;CN=Jordan Lee:mailto:jordan@northwind.io
+ATTENDEE;CN=Marcus Webb:mailto:marcus@northwind.io
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-standup-20260711@northwind.io
+DTSTAMP:20260711T090000Z
+DTSTART:20260711T093000Z
+DTEND:20260711T094500Z
+SUMMARY:Sales Team Standup
+DESCRIPTION:Daily sync — pipeline review and blockers.
+LOCATION:Slack Huddle #sales-team
+ORGANIZER;CN=Marcus Webb:mailto:marcus@northwind.io
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-umbrella-timeline-20260718@northwind.io
+DTSTAMP:20260711T101200Z
+DTSTART:20260718T160000Z
+DTEND:20260718T163000Z
+SUMMARY:Umbrella Holdings — Migration Timeline Review (D105)
+DESCRIPTION:Revised timeline for Umbrella data migration. Sarah Kim attending.
+LOCATION:Google Meet
+ORGANIZER;CN=Alex Rivera:mailto:alex@northwind.io
+ATTENDEE;CN=Sarah Kim:mailto:sarah@umbrella.co
+END:VEVENT
+END:VCALENDAR

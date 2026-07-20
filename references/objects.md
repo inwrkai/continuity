@@ -1,6 +1,16 @@
 # Object Catalog
 
-Default object types and field schemas for the Continuity extraction pipeline. Use these when the user does not specify a custom scope.
+**Fallback** default object types and field schemas for Continuity when no confirmed workspace schema exists.
+
+Prefer discovering a workspace schema via [schema-setup.md](schema-setup.md) and storing it in `inwrk/schema.md`. When `schema.md` is confirmed, it is authoritative — do not override it with these defaults.
+
+Use the types below when:
+
+- The user declines setup and wants to extract immediately
+- The bundle has no `schema.md` and no custom `object_schemas` in `index.md`
+- The user scopes to a subset of these defaults
+
+Suggestion vocabulary for naming discovered objects/fields: [schema-vocabulary.md](schema-vocabulary.md).
 
 ## Default object types
 
@@ -250,9 +260,11 @@ Open questions that need answers.
 
 ---
 
-## Custom object types
+## Custom object types and workspace schema
 
-Users may define additional object types for a specific bundle. Store the configuration in the bundle root `index.md` frontmatter:
+**Preferred:** run [schema setup](schema-setup.md) and persist objects, fields, relationships, and rules in `inwrk/schema.md`. Sync a compact mirror into `index.md` (`object_types` / `object_schemas`) per [okf-output.md](okf-output.md).
+
+**Legacy / compatibility:** users may still define additional types only in the bundle root `index.md` frontmatter:
 
 ```yaml
 ---
@@ -272,18 +284,21 @@ object_schemas:
 ---
 ```
 
+When both `schema.md` (confirmed) and `index.md` custom schemas exist, **`schema.md` wins**. Migrate hand-authored `object_schemas` into `schema.md` when convenient.
+
 ### Custom type guidelines
 
 1. **Name** — PascalCase, singular (e.g., `Incident`, `Decision`, `Milestone`)
 2. **Fields** — define only fields you want extracted; mark required fields in the schema
-3. **Reuse** — on subsequent runs, read `object_types` and `object_schemas` from the existing bundle's `index.md`
+3. **Reuse** — on subsequent runs, prefer `schema.md`; else read `object_types` and `object_schemas` from `index.md`
 4. **Subset** — user can request a subset of default types without defining custom schemas
-5. **Validation** — the agent uses schemas as extraction guidance, not strict validation
+5. **Validation** — the agent uses schemas as extraction guidance; workspace **rules** add identity/dedup and soft validation (not a hard engine)
 
 ### When to add custom types
 
 - Domain-specific entities not covered by defaults (e.g., `Bug`, `Feature`, `Contract`)
 - Team-specific terminology that maps poorly to default types
 - Scoped extractions where a single object type is sufficient
+- Recurring schema misfits that the user approved as a schema bump (see [schema-setup.md](schema-setup.md))
 
 When custom types are defined, include them in the `object_types` list passed to the extract stage.

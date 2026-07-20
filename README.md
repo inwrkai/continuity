@@ -1,8 +1,10 @@
 # Continuity
 
-**Extract records from chats.**
+**Extract records from chats — against a discovered workspace schema.**
 
 LLMs are great at summarizing and going through stuff but not good at records. Point Continuity at any chat with your connectors and get it to extract records. Provide grounding with other relevant sources.
+
+Every business already has an implicit schema across spreadsheets, documents, and conversations. Continuity can discover that schema (from CSVs, Sheets, or a short interview), save a versioned schema under `inwrk/`, then extract and update records against it — flagging misfits and proposing schema changes when patterns recur.
 
 ```
 continuity this chat
@@ -36,7 +38,7 @@ Then in any chat: `continuity this chat` — or just ask *"extract records from 
 
 ```bash
 git clone https://github.com/inwrkai/continuity ~/.codex/skills/continuity
-echo '- For extracting records from chats ("continuity"), or answering questions from an existing inwrk/ bundle, read and follow ~/.codex/skills/continuity/SKILL.md' >> ~/.codex/AGENTS.md
+echo '- For extracting records from chats ("continuity"), discovering a workspace schema, or answering questions from an existing inwrk/ bundle, read and follow ~/.codex/skills/continuity/SKILL.md' >> ~/.codex/AGENTS.md
 ```
 
 Then ask Codex: *"extract records from this chat."*
@@ -51,6 +53,17 @@ git clone https://github.com/inwrkai/continuity ~/.cursor/skills/continuity
 # from your rules or AGENTS.md, or paste its path into the chat.
 git clone https://github.com/inwrkai/continuity ~/skills/continuity
 ```
+
+<details>
+<summary><b>Alternative: npx skills</b></summary>
+
+```bash
+npx skills add inwrkai/continuity -g
+```
+
+Works across agents, but does not auto-update before each Continuity run (use `npx skills update continuity` manually). Prefer `git clone` when you want Step 0’s pre-run update check.
+
+</details>
 
 The `SKILL.md` contains complete instructions: the agent runs the pipeline and writes the records bundle.
 
@@ -70,17 +83,33 @@ The `SKILL.md` contains complete instructions: the agent runs the pipeline and w
 
 | Stage | Output |
 |---|---|
-| Extract | Draft records with fields, citations, confidence (`high` / `medium` / `low`), optional prior-record link |
-| Review | Drafts revised in place (merge / split / drop / edit); user corrections applied |
-| Write | Finalized records → markdown under `inwrk/`; conditional lessons (max 30); short run summary |
+| Setup (optional) | Versioned workspace schema in `inwrk/schema.md` from CSVs/Sheets or an interview |
+| Extract | Draft records with fields, citations, confidence (`high` / `medium` / `low`), optional prior-record link; schema misfits noted |
+| Review | Drafts revised in place (merge / split / drop / edit); identity/dedup via schema rules |
+| Write | Finalized records → markdown under `inwrk/`; conditional lessons (max 30); short run summary; schema proposals when patterns recur |
 
-Default object types: **Task**, **Thread**, **Attendance**, **Appointment**, **Lead**, **Expense**, **Decision**, **Blocker**, **Question**. Scope to a subset or define custom types per bundle.
+**With a confirmed schema:** extract against that workspace's objects, fields, relationships, and rules.
+
+**Without a schema (fallback):** default object types **Task**, **Thread**, **Attendance**, **Appointment**, **Lead**, **Expense**, **Decision**, **Blocker**, **Question**. Scope to a subset or run setup to discover a better fit.
 
 Relative dates ("Thursday", "tomorrow at 10") are resolved to ISO 8601 against the transcript or run date.
+
+## Try with sample data
+
+No connectors needed. Use the bundled **Northwind Analytics** scenario under [`sample/`](sample/README.md):
+
+1. **Setup** — discover schema from `sample/sources/crm/*.csv`
+2. **Extract** — Slack thread + calendar + email as grounding → `./inwrk/`
+3. **Query** — ask questions about the bundle you just built
+
+See [sample/README.md](sample/README.md) for copy-paste prompts. Sample data is **inputs only** — `inwrk/` is created when you run the skill.
 
 ## Example prompts
 
 ```
+continuity setup
+# attach CSVs / Sheets, or answer a short interview
+
 continuity this chat
 
 Extract records from this Slack thread (and ground with the attached doc). Output to inwrk/.
@@ -88,11 +117,13 @@ Extract records from this Slack thread (and ground with the attached doc). Outpu
 Pull this meeting chat via connectors and extract records — only Task, Decision, and Blocker.
 
 What open tasks and blockers are in inwrk/?
+
+Discover schema from these spreadsheets, then extract records from this chat.
 ```
 
 ## Re-running on an existing bundle
 
-If `inwrk/` already exists, the skill loads `lessons.md` and `records/index.md` summaries first, then full records only for likely updates. New runs update matching records (by `record_id`) or add new ones.
+If `inwrk/` already exists, the skill loads `schema.md` (when present), `lessons.md`, and `records/index.md` summaries first, then full records only for likely updates. New runs update matching records (by `record_id` and identity rules) or add new ones. Recurring misfits become schema proposals — bumps require your approval.
 
 ## Querying a bundle
 
@@ -102,17 +133,21 @@ Ask questions without re-extracting — e.g. *"what appointments are upcoming?"*
 
 ```
 continuity/
-├── SKILL.md              # Skill manifest and 6-step workflow (read first)
+├── SKILL.md              # Skill manifest and workflow (read first)
 ├── AGENTS.md             # Navigation index for agents
 ├── README.md             # This file
 ├── LICENSE               # MIT
+├── sample/               # Demo inputs (CRM, Slack, calendar, email) — see sample/README.md
+│   └── sources/
 └── references/
     ├── stages.md         # Extract / review / write stage instructions
-    ├── objects.md        # Default object types and schemas
+    ├── objects.md        # Fallback default object types and schemas
+    ├── schema-setup.md   # Discover and confirm workspace schema
+    ├── schema-vocabulary.md  # Naming hints for objects / properties / rules
     ├── okf-output.md     # Bundle layout and write rules
     └── query.md          # Answer questions from an existing bundle
 ```
 
-The on-disk format is self-contained markdown with YAML frontmatter (compatible with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) where useful).
+The on-disk format is self-contained markdown with YAML frontmatter (compatible with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) where useful). Workspace schemas live at `inwrk/schema.md` with version snapshots under `inwrk/schema/`.
 
 MIT licensed. See [LICENSE](LICENSE).
