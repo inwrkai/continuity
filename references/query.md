@@ -54,6 +54,9 @@ Keep answers concise:
 1. Direct answer (list, total, or short paragraph)
 2. Record citations with type and key fields
 3. Note gaps (e.g., low-confidence records, unresolved relative dates)
+4. One-line canvas suggestion when the bundle has records (e.g. "Say **visualize** to open an interactive knowledge-base canvas.")
+
+When the user asked to **visualize** or open a **canvas**, follow [canvas.md](canvas.md) instead of (or after) a long markdown table.
 
 Example:
 
@@ -63,6 +66,8 @@ Open tasks (2):
 - [Fix login token expiry](/records/fix-login-token-expiry.md) — In Progress (Task, medium)
 
 No open blockers in inwrk/.
+
+Say **visualize** to open an interactive knowledge-base canvas.
 ```
 
 ## Do not

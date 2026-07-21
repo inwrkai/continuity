@@ -207,15 +207,18 @@ Chronological history, newest first. Date headings use ISO 8601 `YYYY-MM-DD`.
 ## 2026-07-11
 * **Creation**: Added [Prepare demo](/records/prepare-demo.md) (Task).
 * **Update**: Refreshed [Client call with Priya](/records/client-call-priya.md) (Appointment).
+* **Deletion**: Removed [Stale blocker](/records/stale-blocker.md) (Blocker).
 
 ## 2026-07-10
 * **Initialization**: Created inwrk bundle structure.
 * **Schema**: Confirmed workspace schema v1 ([schema.md](/schema.md)).
 ```
 
-Entry types: `**Creation**`, `**Update**`, `**Deprecation**`, `**Schema**`.
+Entry types: `**Creation**`, `**Update**`, `**Deletion**`, `**Deprecation**`, `**Schema**`.
 
-Append entries for every run. When a record is updated in place, log an **Update** entry referencing the record concept. Log **Schema** when a schema is confirmed or bumped (include version number).
+Append entries for every run or canvas apply. When a record is updated in place, log an **Update** entry referencing the record concept. When a record file is removed, log a **Deletion** entry with the former title and type. Log **Schema** when a schema is confirmed or bumped (include version number).
+
+Canvas-sourced writes follow the same entry types; note in the record provenance when applied via [canvas-update.md](canvas-update.md).
 
 ## lessons.md
 
@@ -336,6 +339,15 @@ When creating a new record:
 1. Generate a new UUID for `record_id`
 2. Create `records/<slug>.md` (apply slug-collision rule if needed)
 3. Append a **Creation** entry to `log.md`
+
+When deleting a record (canvas apply or explicit user request):
+
+1. Find the record file by matching `record_id` in frontmatter
+2. Remove `records/<slug>.md`
+3. Append a **Deletion** entry to `log.md` with the former title and object type
+4. Regenerate `records/index.md`
+
+Canvas-sourced creates, updates, and deletes follow the same rules. See [canvas-update.md](canvas-update.md).
 
 ### records/index.md
 

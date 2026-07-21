@@ -118,6 +118,10 @@ Pull this meeting chat via connectors and extract records — only Task, Decisio
 
 What open tasks and blockers are in inwrk/?
 
+Visualize my knowledge base.
+
+Apply canvas changes.
+
 Discover schema from these spreadsheets, then extract records from this chat.
 ```
 
@@ -128,6 +132,12 @@ If `inwrk/` already exists, the skill loads `schema.md` (when present), `lessons
 ## Querying a bundle
 
 Ask questions without re-extracting — e.g. *"what appointments are upcoming?"* or *"what changed since Monday?"*. The agent reads the index, loads matching records, and cites them. See `references/query.md`.
+
+## Visualizing a bundle
+
+When an `inwrk/` bundle exists, Continuity suggests opening an interactive live canvas after extract and query runs. Ask **visualize** (or **show my knowledge base**) to open an explorer dashboard with record stats, a filterable table, and a relationship graph.
+
+Edit records in the canvas — create, update, or delete — then click **Apply** to write changes to `inwrk/` (agent-mediated). Works on Cursor and any agent with live canvas support. See `references/canvas.md` and `references/canvas-update.md`.
 
 ## Repository layout
 
@@ -145,7 +155,9 @@ continuity/
     ├── schema-setup.md   # Discover and confirm workspace schema
     ├── schema-vocabulary.md  # Naming hints for objects / properties / rules
     ├── okf-output.md     # Bundle layout and write rules
-    └── query.md          # Answer questions from an existing bundle
+    ├── query.md          # Answer questions from an existing bundle
+    ├── canvas.md         # Visualize the knowledge base in a live canvas
+    └── canvas-update.md  # Apply batched CRUD patches from the canvas
 ```
 
 The on-disk format is self-contained markdown with YAML frontmatter (compatible with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) where useful). Workspace schemas live at `inwrk/schema.md` with version snapshots under `inwrk/schema/`.

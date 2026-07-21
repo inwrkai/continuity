@@ -30,6 +30,8 @@ New to continuity? Read in this order:
   5. references/objects.md            ← fallback default object types
   6. references/okf-output.md         ← inwrk bundle layout (incl. schema.md)
   7. references/query.md              ← answering questions from an existing bundle
+  8. references/canvas.md             ← visualize the knowledge base in a live canvas
+  9. references/canvas-update.md      ← apply batched CRUD patches from the canvas
 ```
 
 ---
@@ -44,6 +46,8 @@ New to continuity? Read in this order:
 | [`references/schema-vocabulary.md`](references/schema-vocabulary.md) | Suggestion vocabulary for Objects, Properties, Rules (not Actions/Interfaces/AI) |
 | [`references/okf-output.md`](references/okf-output.md) | Bundle layout, `schema.md` / snapshots, frontmatter, summary-first loading, runs |
 | [`references/query.md`](references/query.md) | How to answer questions from an existing `inwrk/` bundle without re-extracting |
+| [`references/canvas.md`](references/canvas.md) | Suggest and build an interactive knowledge-base canvas (explorer + graph + CRUD queue) |
+| [`references/canvas-update.md`](references/canvas-update.md) | Apply batched create/update/delete patches from the canvas to `inwrk/` |
 
 ---
 
@@ -64,6 +68,10 @@ chat (+ connectors / grounding) + lessons + schema + prior summaries + anchor_da
 ```
 
 Query path (no new transcript): `index.md` + `records/index.md` → load matches → answer with citations. See [query.md](references/query.md).
+
+Visualize path (on user request): load bundle → build live canvas per [canvas.md](references/canvas.md). Suggest canvas after query/extract summaries when records exist.
+
+Canvas apply path: validate patch → write CRUD to bundle per [canvas-update.md](references/canvas-update.md) → refresh canvas.
 
 ---
 
@@ -90,6 +98,12 @@ Query path (no new transcript): `index.md` + `records/index.md` → load matches
 | Re-running extraction to answer a read question | Use [query.md](references/query.md) |
 | Referencing external pipeline code | Skill is standalone — agent performs all stages directly |
 | Persisting Actions / Interfaces / Intelligence in schema | Only Objects, Properties, Relationships, Rules |
+| Auto-opening a canvas after every run | Suggest always; open only when the user asks — see [canvas.md](references/canvas.md) |
+| Writing Cursor `.canvas.tsx` on non-Cursor agents | Detect the host canvas skill; adapt file location and imports |
+| Rendering empty graph/table sections in a canvas | Omit sections with no data; never show placeholders |
+| Inventing records or edges for the visualization | Only embed data present in the bundle |
+| Writing `inwrk/` from canvas runtime without agent apply | Queue ops in canvas; agent applies per [canvas-update.md](references/canvas-update.md) |
+| Applying canvas patches without schema validation | Validate field keys and enums; reject unknown fields |
 
 ---
 

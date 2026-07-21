@@ -6,13 +6,15 @@ description: >-
   point this at any chat with your connectors and get structured records out,
   with grounding from other relevant sources. Use when the user mentions
   continuity, discover schema, extract records from chats, convert a
-  conversation into records, update an inwrk bundle, or asks about records
-  already stored in inwrk/.
+  conversation into records, update an inwrk bundle, asks about records
+  already stored in inwrk/, wants to visualize their knowledge base
+  (visualize, canvas, show my knowledge base), or apply canvas changes
+  to create, update, or delete records in the bundle.
 license: MIT
 compatibility: Works with any Agent Skills-compatible agent (Cursor, Claude Code, etc.). Writes output to the workspace; no external services required.
 metadata:
   author: inwrk
-  version: "0.4.0"
+  version: "0.6.0"
   homepage: https://github.com/inwrkai/continuity
 ---
 
@@ -71,6 +73,16 @@ fi
 - Asks about records already in `inwrk/` (open tasks, blockers, what changed, etc.)
 - Wants a summary or filter of an existing bundle without new input
 
+**Visualize** when the user:
+
+- Asks to **visualize**, open a **canvas**, or **show my knowledge base**
+- Wants an interactive live view of records and relationships in an existing bundle
+
+**Apply canvas changes** when the user:
+
+- Clicks **Apply** in the continuity canvas (patch arrives via `newComposerChat` on Cursor)
+- Says **apply canvas changes** and provides or references a canvas patch JSON
+
 ## Reference files
 
 | File | Purpose |
@@ -81,6 +93,8 @@ fi
 | [references/schema-vocabulary.md](references/schema-vocabulary.md) | Suggestion vocabulary for objects, properties, rules |
 | [references/okf-output.md](references/okf-output.md) | Bundle layout, schema files, frontmatter, write/update behavior |
 | [references/query.md](references/query.md) | How to answer questions from an existing bundle |
+| [references/canvas.md](references/canvas.md) | Suggest and build an interactive knowledge-base canvas |
+| [references/canvas-update.md](references/canvas-update.md) | Apply batched create/update/delete patches from the canvas |
 
 Read the relevant reference before executing each stage. For a navigation index, see [AGENTS.md](AGENTS.md).
 
@@ -110,6 +124,32 @@ If the user is asking about an existing bundle (not providing new context to con
 1. Read `inwrk/index.md` and `inwrk/records/index.md` (and `schema.md` when present for type names)
 2. Load only matching record files
 3. Answer with citations; do not re-run extraction
+4. When a bundle with records exists, end with a one-line canvas suggestion (see [Visualizing a bundle](#visualizing-a-bundle))
+
+---
+
+## Visualizing a bundle
+
+When an `inwrk/` bundle with records exists:
+
+- **Suggest always** — after extract Step 6 summaries, query answers, and schema setup, end with one line offering a live canvas (e.g. "Say **visualize** to open an interactive knowledge-base canvas.")
+- **Open only on request** — when the user asks to visualize, show their knowledge base, or open a canvas, follow [canvas.md](references/canvas.md)
+- **Apply patches** — when the user applies canvas changes, follow [canvas-update.md](references/canvas-update.md), then refresh the canvas
+
+Do not auto-open a canvas after every run.
+
+---
+
+## Applying canvas changes
+
+When a canvas patch arrives (Apply button chat or explicit "apply canvas changes"):
+
+1. Run Step 0 if needed
+2. Follow [canvas-update.md](references/canvas-update.md) — validate, write creates/updates/deletes, regenerate index and log
+3. Rebuild the canvas from the live bundle per [canvas.md](references/canvas.md) Refresh
+4. Report created / updated / deleted titles
+
+Do not re-run extract. Do not bump schema.
 
 ---
 
@@ -224,6 +264,7 @@ Report:
 - Low-confidence records flagged for user review
 - Schema misfits (if any)
 - Schema proposals awaiting approval (if any)
+- Canvas suggestion when the bundle has records (see [Visualizing a bundle](#visualizing-a-bundle))
 
 ---
 
