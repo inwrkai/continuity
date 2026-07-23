@@ -111,21 +111,34 @@ Track created / updated / deleted titles for the chat summary.
 2. Derive slug from `title`; apply slug-collision rule if needed
 3. Write frontmatter, `# Fields` table, and provenance note (below)
 4. Append **Creation** to `log.md`
+5. Append `record.created` to `events.jsonl` (`source: canvas`) per [events.md](events.md)
 
 **update**
 
 1. Find file by `record_id` in frontmatter
-2. Update frontmatter, `# Fields` body, and `timestamp` (ISO 8601 now)
-3. If `title` changed and slug should change, rename file only when no collision; otherwise keep slug and update title in frontmatter
-4. Append **Update** to `log.md`
+2. Diff prior fields for the `changes` object before overwriting
+3. Update frontmatter, `# Fields` body, and `timestamp` (ISO 8601 now)
+4. If `title` changed and slug should change, rename file only when no collision; otherwise keep slug and update title in frontmatter
+5. Append **Update** to `log.md`
+6. Append `record.updated` to `events.jsonl` with `changes` (`source: canvas`)
 
 **delete**
 
 1. Find file by `record_id`; note title and type for the log
 2. Remove the record file
 3. Append **Deletion** to `log.md`
+4. Append `record.deleted` to `events.jsonl` (`source: canvas`)
 
 After all ops: regenerate `records/index.md`.
+
+### 4.5. Evaluate automations
+
+After events are appended:
+
+1. Follow [automations.md](automations.md) evaluation protocol — process events after `event_cursor`, lazy schedule check
+2. Auto-run matching **internal** actions; regenerate `records/index.md` if automations created/updated records
+3. Queue **external** actions for the chat summary (propose-and-approve; do not send yet)
+4. Include automations fired and open notifications in the apply summary
 
 ### 5. Provenance
 
@@ -154,6 +167,8 @@ Canvas patch applied
 - Created: 1 (Follow up with Acme — Task)
 - Updated: 2 (Prepare demo — Task; Client call — Appointment)
 - Deleted: 1 (Stale blocker — Blocker)
+- Automations: 1 fired (Won deal → invoice task)
+- External pending: none
 - Output: inwrk/
 ```
 
@@ -173,3 +188,6 @@ Canvas patch rejected
 - Write `inwrk/` files from canvas runtime without going through this protocol
 - Apply ops with unknown field keys silently
 - Skip `log.md` or `records/index.md` regeneration
+- Skip event emission or automation evaluation after a successful write
+- Execute external automation actions without user approval
+- Let automation-sourced events re-trigger automations

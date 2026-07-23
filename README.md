@@ -122,12 +122,14 @@ Visualize my knowledge base.
 
 Apply canvas changes.
 
+When a Deal status changes to Won, create a Task to send the invoice and notify me.
+
 Discover schema from these spreadsheets, then extract records from this chat.
 ```
 
 ## Re-running on an existing bundle
 
-If `inwrk/` already exists, the skill loads `schema.md` (when present), `lessons.md`, and `records/index.md` summaries first, then full records only for likely updates. New runs update matching records (by `record_id` and identity rules) or add new ones. Recurring misfits become schema proposals — bumps require your approval.
+If `inwrk/` already exists, the skill loads `schema.md` (when present), `lessons.md`, and `records/index.md` summaries first, then full records only for likely updates. New runs update matching records (by `record_id` and identity rules) or add new ones. Recurring misfits become schema proposals — bumps require your approval. Mutations append to `events.jsonl`; confirmed automations evaluate afterward.
 
 ## Querying a bundle
 
@@ -135,9 +137,13 @@ Ask questions without re-extracting — e.g. *"what appointments are upcoming?"*
 
 ## Visualizing a bundle
 
-When an `inwrk/` bundle exists, Continuity suggests opening an interactive live canvas after extract and query runs. Ask **visualize** (or **show my knowledge base**) to open an explorer dashboard with record stats, a filterable table, and a relationship graph.
+When an `inwrk/` bundle exists, Continuity suggests opening an interactive live canvas after extract and query runs. Ask **visualize** (or **show my knowledge base**) to open an explorer dashboard with record stats, a filterable table, a relationship graph, and (when present) an Activity feed and Automations panel.
 
 Edit records in the canvas — create, update, or delete — then click **Apply** to write changes to `inwrk/` (agent-mediated). Works on Cursor and any agent with live canvas support. See `references/canvas.md` and `references/canvas-update.md`.
+
+## Automations
+
+Confirm event-driven rules in chat — e.g. *"when a Deal goes Won, create an invoice Task and notify me"*. Rules live in `inwrk/automations.md`. After extract or canvas apply, matching **internal** actions run automatically; **external** actions (email, message, calendar via MCP) are proposed for your approval. There is no background daemon — evaluation is lazy whenever the agent writes the bundle. See `references/events.md` and `references/automations.md`.
 
 ## Repository layout
 
@@ -153,13 +159,15 @@ continuity/
     ├── stages.md         # Extract / review / write stage instructions
     ├── objects.md        # Fallback default object types and schemas
     ├── schema-setup.md   # Discover and confirm workspace schema
-    ├── schema-vocabulary.md  # Naming hints for objects / properties / rules
+    ├── schema-vocabulary.md  # Naming hints for objects / properties / actions / rules
     ├── okf-output.md     # Bundle layout and write rules
     ├── query.md          # Answer questions from an existing bundle
     ├── canvas.md         # Visualize the knowledge base in a live canvas
-    └── canvas-update.md  # Apply batched CRUD patches from the canvas
+    ├── canvas-update.md  # Apply batched CRUD patches from the canvas
+    ├── events.md         # Structured events.jsonl audit log
+    └── automations.md    # Confirmed Trigger → Condition → Action engine
 ```
 
-The on-disk format is self-contained markdown with YAML frontmatter (compatible with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) where useful). Workspace schemas live at `inwrk/schema.md` with version snapshots under `inwrk/schema/`.
+The on-disk format is self-contained markdown with YAML frontmatter (compatible with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) where useful). Workspace schemas live at `inwrk/schema.md` with version snapshots under `inwrk/schema/`. Events and automations live beside them as `events.jsonl` and `automations.md`.
 
 MIT licensed. See [LICENSE](LICENSE).

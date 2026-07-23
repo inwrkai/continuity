@@ -8,13 +8,14 @@ description: >-
   continuity, discover schema, extract records from chats, convert a
   conversation into records, update an inwrk bundle, asks about records
   already stored in inwrk/, wants to visualize their knowledge base
-  (visualize, canvas, show my knowledge base), or apply canvas changes
-  to create, update, or delete records in the bundle.
+  (visualize, canvas, show my knowledge base), apply canvas changes
+  to create, update, or delete records in the bundle, or manage event-driven
+  automations (when X happens do Y, add an automation, check schedules).
 license: MIT
 compatibility: Works with any Agent Skills-compatible agent (Cursor, Claude Code, etc.). Writes output to the workspace; no external services required.
 metadata:
   author: inwrk
-  version: "0.6.0"
+  version: "0.7.0"
   homepage: https://github.com/inwrkai/continuity
 ---
 
@@ -83,6 +84,12 @@ fi
 - Clicks **Apply** in the continuity canvas (patch arrives via `newComposerChat` on Cursor)
 - Says **apply canvas changes** and provides or references a canvas patch JSON
 
+**Automations** when the user:
+
+- Says `add an automation`, `when X happens do Y`, `automate …`, or equivalent
+- Asks to confirm, list, disable, or check automations / schedules
+- Approves or skips a proposed external automation action (email, message, calendar)
+
 ## Reference files
 
 | File | Purpose |
@@ -95,6 +102,8 @@ fi
 | [references/query.md](references/query.md) | How to answer questions from an existing bundle |
 | [references/canvas.md](references/canvas.md) | Suggest and build an interactive knowledge-base canvas |
 | [references/canvas-update.md](references/canvas-update.md) | Apply batched create/update/delete patches from the canvas |
+| [references/events.md](references/events.md) | Structured event log (`events.jsonl`) for mutations and audit |
+| [references/automations.md](references/automations.md) | Confirmed Trigger → Condition → Action automations |
 
 Read the relevant reference before executing each stage. For a navigation index, see [AGENTS.md](AGENTS.md).
 
@@ -145,11 +154,30 @@ Do not auto-open a canvas after every run.
 When a canvas patch arrives (Apply button chat or explicit "apply canvas changes"):
 
 1. Run Step 0 if needed
-2. Follow [canvas-update.md](references/canvas-update.md) — validate, write creates/updates/deletes, regenerate index and log
+2. Follow [canvas-update.md](references/canvas-update.md) — validate, write creates/updates/deletes, regenerate index and log, **emit events**, **evaluate automations**
 3. Rebuild the canvas from the live bundle per [canvas.md](references/canvas.md) Refresh
-4. Report created / updated / deleted titles
+4. Report created / updated / deleted titles, automations fired, and any external actions awaiting approval
 
 Do not re-run extract. Do not bump schema.
+
+---
+
+## Automations
+
+Event-driven **Trigger → Condition → Action** rules live in `inwrk/automations.md` (not in `schema.md`). Structured mutations append to `inwrk/events.jsonl`. See [events.md](references/events.md) and [automations.md](references/automations.md).
+
+When the user asks to add or change an automation:
+
+1. Run Step 0 if needed; locate the bundle
+2. Draft the automation in chat (trigger, optional condition, actions)
+3. Write as `status: draft` or, only after the user confirms, `status: confirmed`
+4. Never auto-confirm; never execute draft automations
+
+**Internal actions** (create/update/notify/archive/…) auto-run when a confirmed automation matches. **External actions** (email, message, calendar via MCP) are always proposed in chat and run only after the user approves.
+
+Evaluation runs lazily after extract Step 5 and canvas apply (and on `check schedules` / similar). There is no background daemon.
+
+Trigger phrases: `add an automation`, `when X happens do Y`, `automate …`, `check schedules`, `list automations`, `acknowledge notifications`.
 
 ---
 
@@ -248,8 +276,10 @@ Follow [stages.md — Stage 3: Write and lessons](references/stages.md#stage-3-w
 4. `inwrk/records/index.md` — regenerate directory listing
 5. `inwrk/log.md` — append Creation/Update entries for this run
 6. `inwrk/runs/<date>-<slug>.md` — short run summary including schema misfits/proposals when relevant; retain last 20 runs
+7. `inwrk/events.jsonl` — append `record.created` / `record.updated` (and `run.completed`) per [events.md](references/events.md)
+8. Evaluate confirmed automations per [automations.md](references/automations.md) — process new events, lazy schedule check; auto-run internal actions; propose external actions for approval
 
-**Do not** auto-bump `schema.md` in this step. Propose schema changes in the run file and chat summary; apply only after user approval (then write `schema.md`, snapshot `schema/vN.md`, sync `index.md`, log **Schema**).
+**Do not** auto-bump `schema.md` in this step. Propose schema changes in the run file and chat summary; apply only after user approval (then write `schema.md`, snapshot `schema/vN.md`, sync `index.md`, log **Schema**, emit `schema.confirmed` / `schema.bumped`).
 
 **Lessons:** Update primarily from user corrections. Add a lesson from a self-review catch only when the same pattern recurs. Skip if there is nothing to learn. Max 30 lessons.
 
@@ -264,6 +294,9 @@ Report:
 - Low-confidence records flagged for user review
 - Schema misfits (if any)
 - Schema proposals awaiting approval (if any)
+- Automations fired (names + triggering records); records created/updated by automations
+- External automation actions awaiting approval (if any)
+- Open notifications count when `notifications.md` has open items
 - Canvas suggestion when the bundle has records (see [Visualizing a bundle](#visualizing-a-bundle))
 
 ---
@@ -295,6 +328,7 @@ When `inwrk/` already exists:
 5. `log.md` gets Update entries for modified records, Creation entries for new ones
 6. Lessons accumulate across runs (max 30), driven mainly by user corrections
 7. Schema misfits are recorded in the run file; recurring patterns become proposals — bump schema only on user approval
+8. Mutations append to `events.jsonl`; confirmed automations evaluate afterward (internal auto-run; external propose-and-approve)
 
 ---
 
@@ -309,6 +343,8 @@ When `inwrk/` already exists:
 7. **Standalone** — do not import, shell out to, or reference external pipeline code
 8. **Summary-first loading** — do not load every record on every run
 9. **No silent schema bumps** — evolve `schema.md` only with user approval
+10. **No silent automation confirms** — only `status: confirmed` automations run; external actions need explicit approval
+11. **No automation cascades** — events with `source: automation` do not re-trigger automations
 
 ---
 
@@ -348,3 +384,6 @@ If the user requests only a specific stage (e.g., "just extract drafts"), run th
 - **Query with missing bundle:** Tell the user `inwrk/` was not found; offer to create one from a chat or run schema setup
 - **Missing schema on first extract with sheets:** Offer setup before extract; if declined, use defaults
 - **Schema proposal:** Present clearly; do not bump until the user approves
+- **Draft automation:** Never execute until the user confirms
+- **External automation action:** Propose payload; do not call MCP until the user approves
+- **Missing connector for external action:** Leave a notification / note in summary; do not fail the whole evaluation

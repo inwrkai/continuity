@@ -40,8 +40,9 @@ flowchart TD
   confirm["2. Confirm proposed schema"]
   extract["3. Extract from Slack + calendar + email"]
   query["4. Query ./inwrk/"]
+  auto["5. Optional: confirm automation + trigger"]
 
-  setup --> confirm --> extract --> query
+  setup --> confirm --> extract --> query --> auto
 ```
 
 ### Step 1 — Discover schema (CRM)
@@ -89,9 +90,35 @@ What meetings are scheduled in inwrk/?
 What schema misfits were flagged in the latest run?
 ```
 
-### Step 4 — Re-run (optional)
+### Step 4 — Add an automation (optional)
 
-Run Step 2 again with the same sources. The agent should **update** existing records (same Acme deal, same demo task) using identity/dedup rules from your schema rather than duplicating everything.
+After extract has produced Deal records:
+
+```
+Add an automation: when a Deal status changes to Won, create a Task titled
+"Send invoice for {{title}}" with status New, and notify me.
+```
+
+Confirm the draft when the agent presents it. The rule is written to `inwrk/automations.md` with `status: confirmed`.
+
+Then mark a deal Won (via a second extract, canvas edit + Apply, or ask the agent to update the Deal):
+
+```
+Update the Acme deal in inwrk/ to status Won
+```
+
+**What to expect:**
+
+- A `record.updated` line in `inwrk/events.jsonl` with `changes.status.to: Won`
+- Automation fires → new Task record + entry in `notifications.md`
+- Chat summary lists the automation fired
+- Say **visualize** to see the Activity feed and Automations panel on the canvas
+
+External actions (email / message via MCP) are always proposed for your approval — they never auto-send.
+
+### Step 5 — Re-run (optional)
+
+Run Step 2 again with the same sources. The agent should **update** existing records (same Acme deal, same demo task) using identity/dedup rules from your schema rather than duplicating everything. Confirmed automations evaluate again only for **new** events after the cursor (no duplicate invoice tasks from the same Won transition).
 
 ## Source file reference
 
@@ -127,5 +154,6 @@ Two-message thread with Priya Sharma confirming Thursday demo, combined pricing 
 - Add your own CSV exports to `sources/crm/` and re-run setup
 - Replace Slack/calendar/email files with real exports (same folder layout)
 - Approve schema proposals when recurring misfits appear in `inwrk/runs/`
+- Add automations (`when X happens do Y`) and say **visualize** for the Activity feed
 
-See [SKILL.md](../SKILL.md) and [references/schema-setup.md](../references/schema-setup.md) for full workflow details.
+See [SKILL.md](../SKILL.md), [references/schema-setup.md](../references/schema-setup.md), and [references/automations.md](../references/automations.md) for full workflow details.

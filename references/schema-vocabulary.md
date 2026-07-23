@@ -4,9 +4,11 @@ Hint vocabulary for workspace schema discovery. Prefer these names when they fit
 
 This is **not** a fixed catalog. Continuity discovers the schema from the business's spreadsheets, documents, and answers — then stores it in `inwrk/schema.md`. See [schema-setup.md](schema-setup.md).
 
-**In scope for persisted schema:** Objects, Properties (field types), Relationships, Rules.
+**In scope for persisted schema (`schema.md`):** Objects, Properties (field types), Relationships, Rules (validation / dedup / policy guidance).
 
-**Out of scope:** Actions (verbs), Interfaces (views), Intelligence (AI capabilities). Do not write those sections into `schema.md`.
+**Executable elsewhere (not in `schema.md`):** Actions (verbs) and Trigger / Schedule / Condition / Action automation rules live in `inwrk/automations.md` — see [automations.md](automations.md). Event audit log: [events.md](events.md).
+
+**Out of scope for schema and automations:** Interfaces (views) as persisted schema sections; Intelligence (AI capabilities) as schema sections. Do not write Actions / Interfaces / Intelligence sections into `schema.md`.
 
 ---
 
@@ -92,25 +94,82 @@ Common field name conventions: `status`, `owner`, `due_date`, `created_at`, `ema
 
 ---
 
-## Rules (labels only)
+## Actions (verbs)
 
-When proposing validation, deduplication, or process constraints, label them with these kinds. Continuity does **not** execute them as an automation engine — they guide extract, review, and identity matching.
+Use these names when authoring automations in `automations.md`. Do **not** add an Actions section to `schema.md`.
 
-| # | Name | Use for |
+| # | Name | Runtime |
 |---|------|---------|
+| 61 | Create | **internal** — create a record |
+| 62 | Update | **internal** — update fields on a record |
+| 63 | Delete | **internal** — rare; prefer Archive; canvas/manual delete is not an automation default |
+| 64 | Assign | **internal** — set owner / assignee |
+| 65 | Approve | **interface-only** — out of scope for automations |
+| 66 | Search | **interface-only** |
+| 67 | Filter | **interface-only** |
+| 68 | Sort | **interface-only** |
+| 69 | Export | **interface-only** |
+| 70 | Import | **interface-only** / setup — not an automation action |
+| 71 | Share | **interface-only** |
+| 72 | Comment | **internal** (optional) — append note to description or a Note record |
+| 73 | Notify | **internal** — write `notifications.md` |
+| 74 | Remind | **internal** — notify with remind level |
+| 75 | Approve | **internal** — set archived / done status |
+| 76 | Restore | **internal** — clear archive |
+| 77 | Duplicate | **internal** — copy record |
+| 78 | Merge | **internal** (optional) — prefer review-time merge; use sparingly in automations |
+| 79 | Approve | **internal** — set Approved status |
+| 80 | Reject | **internal** — set Rejected status |
+| 81 | Trigger | Label for automation triggers — not an action `kind` |
+| 82 | Schedule | **external** when booking calendar via MCP; also schedule **trigger** kind |
+| 83 | Run | Meta — evaluation itself; not a user action `kind` |
+| 84 | Stop | Control — disable automation (`status: draft`) rather than an action |
+| 85 | Cancel | Control — skip pending external proposal |
+| — | Message | **external** — send via chat/WhatsApp/Slack MCP (propose-and-approve) |
+| — | Email | **external** — send via email MCP (propose-and-approve) |
+| — | Escalate | **internal** — urgent notification |
+
+**internal** = auto-run when a confirmed automation matches. **external** = propose in chat; execute only after user approval. **interface-only** = do not put in automation `actions`.
+
+See [automations.md](automations.md) for `kind` values and templates.
+
+---
+
+## Rules
+
+### In `schema.md` (guidance only)
+
+When proposing validation, deduplication, or process constraints for extract/review, label them with these kinds. Schema rules guide agents; they are **not** the automation engine.
+
+| # | Name | Use in schema for |
+|---|------|-------------------|
 | 109 | Permission | Who may create/update (document only) |
 | 110 | Policy | Business policy constraint |
-| 111 | Trigger | When something should happen (document only) |
-| 112 | Schedule | Time-based constraint |
-| 113 | Condition | If/when guard for a rule |
-| 114 | Action | What to do when a condition holds (guidance text) |
+| 111 | Trigger | Documented “when” expectations (non-executing) |
+| 112 | Schedule | Time-based constraint notes |
+| 113 | Condition | If/when guard text |
+| 114 | Action | Guidance text for what reviewers should do |
 | 115 | Audit | What to retain for provenance |
 
-Typical Continuity rules:
+Typical Continuity **schema** rules:
 
 - **Validation** — required fields, enum membership, format (email, currency)
 - **Deduplication** — identity keys (e.g. match `Person` on `email`; match `Company` on normalized name)
-- **Policy** — soft constraints stated in the schema for review (e.g. "Deal without Company is incomplete")
+- **Policy** — soft constraints for review (e.g. "Deal without Company is incomplete")
+
+### In `automations.md` (executable)
+
+These vocabulary kinds are **executable** as automation structure (not stored inside `schema.md`):
+
+| # | Name | Role in automations |
+|---|------|---------------------|
+| 111 | Trigger | `trigger.kind: event` — when a bundle event matches |
+| 112 | Schedule | `trigger.kind: schedule` — lazy date-based check |
+| 113 | Condition | Optional `condition` guards after trigger match |
+| 114 | Action | `actions` list — internal auto-run or external propose-and-approve |
+| 115 | Audit | `events.jsonl` + `automation.fired` + `log.md` **Automation** entries |
+
+Author and confirm automations per [automations.md](automations.md). Only `status: confirmed` automations run.
 
 ---
 
@@ -119,5 +178,6 @@ Typical Continuity rules:
 1. Prefer a vocabulary object name when the entity clearly matches
 2. Prefer vocabulary property types for field `type`
 3. Keep object names PascalCase singular; field names snake_case
-4. Do not invent Actions, Interfaces, or Intelligence sections in `schema.md`
+4. Do not invent Actions, Interfaces, or Intelligence sections in `schema.md` — put executable Actions in `automations.md`
 5. Relationships are edges between objects (see [schema-setup.md](schema-setup.md)), not vocabulary nouns
+6. Prefer vocabulary action names as automation `kind` values when they map cleanly (`create`, `update`, `notify`, …)

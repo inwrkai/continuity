@@ -85,8 +85,9 @@ When the user confirms:
 1. Write `inwrk/schema.md` with `status: confirmed` and `schema_version: 1` (or next version if evolving)
 2. Snapshot to `inwrk/schema/vN.md` (immutable copy of this version)
 3. Sync `object_types` and compact `object_schemas` into `inwrk/index.md` (see [okf-output.md](okf-output.md))
-4. Append an **Initialization** or **Update** entry to `log.md` noting schema confirm/bump
-5. Clear **Open questions** in the schema body (or omit the section)
+4. Append an **Initialization** or **Schema** entry to `log.md` noting schema confirm/bump
+5. Append `schema.confirmed` or `schema.bumped` to `events.jsonl` per [events.md](events.md)
+6. Clear **Open questions** in the schema body (or omit the section)
 
 Then proceed to extract if the user already provided a chat/transcript, or stop after setup if that was the only request.
 
@@ -128,7 +129,7 @@ During regular Continuity runs (see [SKILL.md](../SKILL.md) and [stages.md](stag
 1. Extract and update records against the confirmed schema
 2. Flag **misfits** — facts that do not fit any object/field — in the run summary; do not force them into wrong fields
 3. When the same misfit pattern recurs across runs (or is overwhelming within one rich source), **propose** a schema change (new field, enum value, object, or relationship)
-4. On user approval only: bump `schema_version`, update `schema.md`, snapshot `schema/vN.md`, sync `index.md`, note the bump in `log.md`
+4. On user approval only: bump `schema_version`, update `schema.md`, snapshot `schema/vN.md`, sync `index.md`, note the bump in `log.md`, emit `schema.bumped` in `events.jsonl`
 5. Do **not** silently rewrite all historical records on a bump; new extracts use the new schema going forward
 
 ---

@@ -1,7 +1,7 @@
 # Continuity Agent Skill — Navigation Guide
 
-Guide for AI agents extracting records from chats (with optional grounding sources), discovering a workspace schema, and answering questions from existing bundles.
-Read [SKILL.md](SKILL.md) first for Step 0, schema setup, the 6-step workflow, and query mode.
+Guide for AI agents extracting records from chats (with optional grounding sources), discovering a workspace schema, answering questions from existing bundles, visualizing on a canvas, and running event-driven automations.
+Read [SKILL.md](SKILL.md) first for Step 0, schema setup, the 6-step workflow, query mode, and automations.
 
 ## Structure
 
@@ -23,15 +23,17 @@ continuity/
 ```
 New to continuity? Read in this order:
   0. sample/README.md                 ← optional hands-on demo (no connectors)
-  1. SKILL.md                         ← Step 0, setup, 6-step workflow, query mode
+  1. SKILL.md                         ← Step 0, setup, 6-step workflow, query, automations
   2. references/schema-setup.md       ← discover schema from CSVs/Sheets or interview
-  3. references/schema-vocabulary.md  ← naming hints (Objects, Properties, Rules)
-  4. references/stages.md             ← extract → review → write/lessons
+  3. references/schema-vocabulary.md  ← naming hints (Objects, Properties, Actions, Rules)
+  4. references/stages.md             ← extract → review → write/lessons (+ events)
   5. references/objects.md            ← fallback default object types
-  6. references/okf-output.md         ← inwrk bundle layout (incl. schema.md)
+  6. references/okf-output.md         ← inwrk bundle layout (incl. schema.md, events)
   7. references/query.md              ← answering questions from an existing bundle
   8. references/canvas.md             ← visualize the knowledge base in a live canvas
   9. references/canvas-update.md      ← apply batched CRUD patches from the canvas
+ 10. references/events.md             ← events.jsonl audit log
+ 11. references/automations.md        ← confirmed Trigger → Condition → Action engine
 ```
 
 ---
@@ -43,11 +45,13 @@ New to continuity? Read in this order:
 | [`references/stages.md`](references/stages.md) | Three pipeline stages: extract draft records, self-review, write bundle + conditional lessons |
 | [`references/objects.md`](references/objects.md) | Fallback default object catalog; custom types; points to workspace schema |
 | [`references/schema-setup.md`](references/schema-setup.md) | Setup: discover schema from tabular sources or interview; confirm; evolve |
-| [`references/schema-vocabulary.md`](references/schema-vocabulary.md) | Suggestion vocabulary for Objects, Properties, Rules (not Actions/Interfaces/AI) |
-| [`references/okf-output.md`](references/okf-output.md) | Bundle layout, `schema.md` / snapshots, frontmatter, summary-first loading, runs |
+| [`references/schema-vocabulary.md`](references/schema-vocabulary.md) | Suggestion vocabulary for Objects, Properties, Actions, Rules |
+| [`references/okf-output.md`](references/okf-output.md) | Bundle layout, `schema.md` / snapshots, events, automations, frontmatter, runs |
 | [`references/query.md`](references/query.md) | How to answer questions from an existing `inwrk/` bundle without re-extracting |
-| [`references/canvas.md`](references/canvas.md) | Suggest and build an interactive knowledge-base canvas (explorer + graph + CRUD queue) |
+| [`references/canvas.md`](references/canvas.md) | Suggest and build an interactive knowledge-base canvas (explorer + graph + CRUD + feed) |
 | [`references/canvas-update.md`](references/canvas-update.md) | Apply batched create/update/delete patches from the canvas to `inwrk/` |
+| [`references/events.md`](references/events.md) | Structured `events.jsonl` mutation log and cascade guard |
+| [`references/automations.md`](references/automations.md) | Author/confirm/evaluate event-driven automations |
 
 ---
 
@@ -62,16 +66,18 @@ chat (+ connectors / grounding) + lessons + schema + prior summaries + anchor_da
         ↓
    Stage 2: Review      → revise drafts in place (+ identity/dedup)
         ↓
-   Stage 3: Write       → inwrk bundle; lessons; misfits/proposals in run file
+   Stage 3: Write       → inwrk bundle; lessons; events.jsonl; evaluate automations
         ↓
-   Chat summary (propose schema bump only with user approval)
+   Chat summary (propose schema bump / draft automations only with user approval)
 ```
 
 Query path (no new transcript): `index.md` + `records/index.md` → load matches → answer with citations. See [query.md](references/query.md).
 
 Visualize path (on user request): load bundle → build live canvas per [canvas.md](references/canvas.md). Suggest canvas after query/extract summaries when records exist.
 
-Canvas apply path: validate patch → write CRUD to bundle per [canvas-update.md](references/canvas-update.md) → refresh canvas.
+Canvas apply path: validate patch → write CRUD → emit events → evaluate automations → refresh canvas. See [canvas-update.md](references/canvas-update.md).
+
+Automations path: user confirms rules in `automations.md` → after writes, match events / schedules → internal actions auto-run; external MCP actions propose-and-approve. See [automations.md](references/automations.md).
 
 ---
 
@@ -97,16 +103,22 @@ Canvas apply path: validate patch → write CRUD to bundle per [canvas-update.md
 | Updating lessons from every self-review | Prefer user corrections; add self-review lessons only for recurring patterns |
 | Re-running extraction to answer a read question | Use [query.md](references/query.md) |
 | Referencing external pipeline code | Skill is standalone — agent performs all stages directly |
-| Persisting Actions / Interfaces / Intelligence in schema | Only Objects, Properties, Relationships, Rules |
+| Persisting Actions / Interfaces / Intelligence in schema | Schema: Objects, Properties, Relationships, Rules only; executable Actions live in `automations.md` |
 | Auto-opening a canvas after every run | Suggest always; open only when the user asks — see [canvas.md](references/canvas.md) |
 | Writing Cursor `.canvas.tsx` on non-Cursor agents | Detect the host canvas skill; adapt file location and imports |
 | Rendering empty graph/table sections in a canvas | Omit sections with no data; never show placeholders |
 | Inventing records or edges for the visualization | Only embed data present in the bundle |
 | Writing `inwrk/` from canvas runtime without agent apply | Queue ops in canvas; agent applies per [canvas-update.md](references/canvas-update.md) |
 | Applying canvas patches without schema validation | Validate field keys and enums; reject unknown fields |
+| Executing external automation actions without approval | Propose email/message/calendar payloads; run MCP only after user approves |
+| Firing draft automations | Only `status: confirmed` automations execute |
+| Re-processing events at or before `event_cursor` | Advance cursor after evaluate; process only newer events |
+| Letting automation cascades loop | Events with `source: automation` must not re-trigger automations |
+| Auto-confirming automations without user approval | Same ethos as schema — confirm only when the user agrees |
+| Skipping `events.jsonl` after a successful write | Emit events for creates/updates/deletes alongside `log.md` |
 
 ---
 
 ## Output Location
 
-Default: `inwrk/` in the current workspace. User may override. See [okf-output.md](references/okf-output.md) for the full bundle structure (including `schema.md` and `schema/vN.md`).
+Default: `inwrk/` in the current workspace. User may override. See [okf-output.md](references/okf-output.md) for the full bundle structure (including `schema.md`, `schema/vN.md`, `events.jsonl`, and `automations.md`).

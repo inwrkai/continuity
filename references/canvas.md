@@ -32,8 +32,10 @@ Summary-first, same as [query.md](query.md):
 2. When `inwrk/schema.md` exists with `status: confirmed`, use it for object types, relationships, and `schema_version`
 3. Read `inwrk/records/index.md` for the full listing
 4. Load record bodies when the bundle is small or when relationship field values are needed for the graph; for large bundles use index rows plus key frontmatter fields
+5. When present, read the **tail** of `inwrk/events.jsonl` (last ~30 lines) for the Activity feed
+6. When present, parse `inwrk/automations.md` YAML for the Automations panel (id, name, status, short trigger summary)
 
-Do not invent records or relationships not present in the bundle.
+Do not invent records, relationships, events, or automations not present in the bundle.
 
 ## Embedded data model
 
@@ -66,12 +68,23 @@ type KbGraphEdge = {
   field: string;
 };
 
+type KbEvent = {
+  id: string;
+  ts: string;
+  event: string;
+  title?: string;
+  type?: string;
+  source: string;
+};
+
 type KbData = {
   meta: KbMeta;
   records: KbRecord[];
   edges: KbGraphEdge[];
   typeCounts: Record<string, number>;
   schemaFields?: Record<string, Array<{ name: string; type: string; required?: boolean; enumValues?: string[] }>>;
+  events?: KbEvent[];       // tail of events.jsonl for Activity feed
+  automations?: Array<{ id: string; name: string; status: string; triggerSummary: string }>;
 };
 ```
 
@@ -115,6 +128,26 @@ Single default-export top-level component. Visual hierarchy:
 ### 5. Caption
 
 - Source path (`inwrk/` or custom) and generation timestamp
+
+### 6. Activity feed (read-only)
+
+When `events.jsonl` has at least one event, add a compact **Activity** section (the Feed interface from the vocabulary):
+
+- Show the last ~20–30 events, newest first
+- Each row: timestamp, event type, title (or type), source
+- Highlight `automation.fired` distinctly from record mutations
+- **Omit** this section when `events.jsonl` is missing or empty — never show an empty placeholder
+
+Embed a small `KbEvent[]` array in the canvas data (tail of the log only — do not embed the entire file). See `KbEvent` in the embedded data model above.
+
+### 7. Automations panel (read-only)
+
+When `automations.md` lists one or more automations, add a compact panel:
+
+- Name, status (`draft` / `confirmed`), trigger summary (one line)
+- Optional last-fired hint from recent `automation.fired` events when available
+- **Omit** when there are no automations
+- **Do not** edit or run automations from the canvas in this version — authoring stays in chat per [automations.md](automations.md)
 
 ## Editing (CRUD)
 
@@ -226,8 +259,9 @@ Open the knowledge-base canvas beside the chat: [continuity-kb](/Users/<user>/.c
 - Auto-open a canvas without the user asking
 - Write Cursor `.canvas.tsx` paths or `cursor/canvas` imports on agents without Cursor canvas support
 - Render empty graph or table sections
-- Invent records, fields, or edges for the visualization
+- Invent records, fields, edges, events, or automations for the visualization
 - Use `fetch()` or network calls inside the canvas
 - Store the canvas inside `inwrk/` — canvas files live in the host-managed canvas directory
 - Write or delete `inwrk/` record files from canvas runtime — queue ops and Apply via agent per [canvas-update.md](canvas-update.md)
+- Edit or confirm automations from the canvas (read-only panel only)
 - Auto-Apply on every keystroke

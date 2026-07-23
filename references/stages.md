@@ -239,9 +239,9 @@ Return the full revised drafts array (same schema as Stage 1), plus the misfit l
 
 ## Stage 3: Write and lessons
 
-Persist the reviewed drafts as an inwrk bundle, update lessons when warranted, record schema misfits/proposals, and report a chat summary.
+Persist the reviewed drafts as an inwrk bundle, update lessons when warranted, record schema misfits/proposals, emit events, evaluate automations, and report a chat summary.
 
-Follow [okf-output.md](okf-output.md) for file layout and write rules.
+Follow [okf-output.md](okf-output.md) for file layout and write rules. Follow [events.md](events.md) and [automations.md](automations.md) after record writes.
 
 ### Record finalization
 
@@ -305,6 +305,14 @@ A lesson is a short rule that improves future extraction.
 - User said something is not actionable → extraction lesson
 - User corrected a field value or date → field lesson
 
+### Events and automations
+
+After record files, `log.md`, and the run file are written:
+
+1. Append `record.created` / `record.updated` and `run.completed` to `events.jsonl` per [events.md](events.md)
+2. Evaluate confirmed automations per [automations.md](automations.md) (internal auto-run; external propose-and-approve)
+3. Include automation results in the chat summary
+
 ### Chat summary
 
 After writing the bundle, report:
@@ -316,3 +324,5 @@ After writing the bundle, report:
 - Output path (`inwrk/` or custom)
 - Low-confidence records flagged for user review
 - Schema misfits and proposals awaiting approval, if any
+- Automations fired and external actions awaiting approval, if any
+- Open notifications count, if any

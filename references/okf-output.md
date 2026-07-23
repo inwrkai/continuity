@@ -14,7 +14,10 @@ inwrk/
 ├── schema.md               # Current workspace schema (authoritative when present)
 ├── schema/
 │   └── vN.md               # Immutable snapshots per confirmed schema version
-├── log.md                  # Chronological update history
+├── log.md                  # Chronological update history (human-readable)
+├── events.jsonl            # Append-only structured event log (machine-readable)
+├── automations.md          # Draft/confirmed event → action automations
+├── notifications.md        # Notify / Remind / Escalate inbox
 ├── lessons.md              # Persistent lesson set (YAML in body)
 ├── records/
 │   ├── index.md            # Directory listing of records
@@ -24,6 +27,8 @@ inwrk/
 ```
 
 `schema.md` and `schema/` are created by [schema setup](schema-setup.md). Bundles that only use default object types may omit them.
+
+`events.jsonl`, `automations.md`, and `notifications.md` are created when first needed (first mutation under Continuity ≥ 0.7, first automation, or first notify action). See [events.md](events.md) and [automations.md](automations.md).
 
 ## Workspace schema
 
@@ -103,8 +108,10 @@ Prefer property types from [schema-vocabulary.md](schema-vocabulary.md) (`Text`,
 - Deal: match on external `id` when present; else `name` + related Company
 
 ### Policy
-- (optional) Soft constraints as guidance text — Continuity does not execute them as an engine
+- (optional) Soft constraints as guidance text — Continuity does not execute schema Policy text as an automation engine
 ```
+
+Executable Trigger / Schedule / Condition / Action rules belong in `automations.md`, not here. See [automations.md](automations.md).
 
 Label rule kinds using vocabulary names when helpful (`Policy`, `Condition`, `Audit`, …). See [schema-vocabulary.md](schema-vocabulary.md).
 
@@ -208,17 +215,18 @@ Chronological history, newest first. Date headings use ISO 8601 `YYYY-MM-DD`.
 * **Creation**: Added [Prepare demo](/records/prepare-demo.md) (Task).
 * **Update**: Refreshed [Client call with Priya](/records/client-call-priya.md) (Appointment).
 * **Deletion**: Removed [Stale blocker](/records/stale-blocker.md) (Blocker).
+* **Automation**: Fired `Won deal → invoice task` on [Acme enterprise deal](/records/acme-enterprise-deal.md); created [Send invoice for Acme enterprise deal](/records/send-invoice-for-acme-enterprise-deal.md).
 
 ## 2026-07-10
 * **Initialization**: Created inwrk bundle structure.
 * **Schema**: Confirmed workspace schema v1 ([schema.md](/schema.md)).
 ```
 
-Entry types: `**Creation**`, `**Update**`, `**Deletion**`, `**Deprecation**`, `**Schema**`.
+Entry types: `**Creation**`, `**Update**`, `**Deletion**`, `**Deprecation**`, `**Schema**`, `**Automation**`.
 
-Append entries for every run or canvas apply. When a record is updated in place, log an **Update** entry referencing the record concept. When a record file is removed, log a **Deletion** entry with the former title and type. Log **Schema** when a schema is confirmed or bumped (include version number).
+Append entries for every run or canvas apply. When a record is updated in place, log an **Update** entry referencing the record concept. When a record file is removed, log a **Deletion** entry with the former title and type. Log **Schema** when a schema is confirmed or bumped (include version number). Log **Automation** when a confirmed automation fires (include automation name and resulting record links when applicable).
 
-Canvas-sourced writes follow the same entry types; note in the record provenance when applied via [canvas-update.md](canvas-update.md).
+Also append matching lines to `events.jsonl` per [events.md](events.md). Canvas-sourced writes follow the same entry types; note in the record provenance when applied via [canvas-update.md](canvas-update.md).
 
 ## lessons.md
 
@@ -245,6 +253,14 @@ timestamp: 2026-07-11T10:00:00Z
 ```
 
 On first run, create with an empty YAML list. On subsequent runs, load existing lessons before extract and overwrite with the updated set after the lessons step (when corrections warrant an update).
+
+## events.jsonl, automations.md, notifications.md
+
+- **`events.jsonl`** — append-only JSON Lines audit of mutations. Required once any Continuity ≥ 0.7 write has occurred. Format and emission points: [events.md](events.md).
+- **`automations.md`** — YAML automations + `event_cursor` frontmatter. Create when the user adds an automation or when evaluation first runs. Format: [automations.md](automations.md).
+- **`notifications.md`** — table inbox for Notify / Remind / Escalate. Create on first notify action.
+
+Body of root `index.md` may link to these files when present.
 
 ## Record concepts
 
@@ -330,22 +346,28 @@ Promote simple scalar fields (strings, numbers, booleans) to frontmatter. Keep a
 When a draft has `updates_record_id`:
 
 1. Find the existing record file by matching `record_id` in frontmatter
-2. Edit that file in place (do not create a duplicate)
-3. Refresh frontmatter, body fields, citations, and `timestamp`
-4. Append an **Update** entry to `log.md`
+2. Diff fields for the event `changes` object before overwriting
+3. Edit that file in place (do not create a duplicate)
+4. Refresh frontmatter, body fields, citations, and `timestamp`
+5. Append an **Update** entry to `log.md`
+6. Append `record.updated` to `events.jsonl` per [events.md](events.md)
 
 When creating a new record:
 
 1. Generate a new UUID for `record_id`
 2. Create `records/<slug>.md` (apply slug-collision rule if needed)
 3. Append a **Creation** entry to `log.md`
+4. Append `record.created` to `events.jsonl`
 
 When deleting a record (canvas apply or explicit user request):
 
 1. Find the record file by matching `record_id` in frontmatter
 2. Remove `records/<slug>.md`
 3. Append a **Deletion** entry to `log.md` with the former title and object type
-4. Regenerate `records/index.md`
+4. Append `record.deleted` to `events.jsonl`
+5. Regenerate `records/index.md`
+
+After a batch of creates/updates (extract or canvas): evaluate automations per [automations.md](automations.md).
 
 Canvas-sourced creates, updates, and deletes follow the same rules. See [canvas-update.md](canvas-update.md).
 
@@ -455,6 +477,8 @@ A bundle produced by Continuity is well-formed when:
 4. Cross-links use bundle-relative paths (`/records/slug.md`, `/schema.md`)
 5. New writes use categorical `confidence` (`high` | `medium` | `low`)
 6. When `schema.md` exists with `status: confirmed`, `index.md` `object_types` / `object_schemas` match that schema, and `schema/vN.md` exists for the current `schema_version`
+7. When mutations have been written under Continuity ≥ 0.7, `events.jsonl` exists and stays in sync with `log.md` for those mutations
+8. Confirmed automations live only in `automations.md` (not in `schema.md`); draft automations never execute
 
 ## Chat summary
 
@@ -466,3 +490,4 @@ After writing the bundle, report to the user:
 - Any low-confidence records flagged for review
 - Lessons changes, if any
 - Schema misfits and any schema proposals awaiting approval
+- Automations fired and any external actions awaiting approval
